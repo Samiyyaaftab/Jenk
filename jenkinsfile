@@ -1,0 +1,51 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "samiyyaaftab/zesty"
+        DOCKER_CREDENTIALS_ID = "dockerhub-creds" 
+        GIT_CREDENTIALS_ID = "github-creds"      
+        REPO_URL = "https://github.com/Samiyyaaftab/Jenk.git"
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                echo 'Cloning GitHub repository...'
+                git branch: 'main', url: "${REPO_URL}", credentialsId: "${GIT_CREDENTIALS_ID}"
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                echo 'Building Docker image...'
+                script {
+                    docker.build("${IMAGE_NAME}:latest")
+                }
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                echo 'Pushing Docker image to Docker Hub...'
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_CREDENTIALS_ID}") {
+                        docker.image("${IMAGE_NAME}:latest").push()
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline succeeded!'
+        }
+        failure {
+            echo 'Pipeline failed — check logs for details.'
+        }
+        always {
+            echo 'Pipeline finished.'
+        }
+    }
+}
