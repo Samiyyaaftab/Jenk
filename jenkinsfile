@@ -16,8 +16,10 @@ pipeline {
 
         stage('Build') {
             steps {
-                // Disable CI mode so React doesn't treat warnings as errors
-                bat "set CI=false && npm run build --if-present"
+                bat """
+                set CI=
+                npm run build --if-present
+                """
             }
         }
 
