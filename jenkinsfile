@@ -26,17 +26,17 @@ pipeline {
             }
         }
 
-        stage('Docker Build & Push') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-id', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    bat """
-                    echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-                    docker build -t samiyyaaftab/zesty .
-                    docker push samiyyaaftab/zesty
-                    """
-                }
-            }
+       stage('Docker Build & Push') {
+    steps {
+        withCredentials([usernamePassword(credentialsId: 'docker-cred', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            bat """
+            echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+            docker build -t samiyyaaftab/zesty .
+            docker push samiyyaaftab/zesty
+            """
         }
+    }
+}
 
         stage('Deploy to Railway') {
             steps {
