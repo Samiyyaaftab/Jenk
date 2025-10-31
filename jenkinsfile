@@ -1,51 +1,47 @@
 pipeline {
     agent any
 
-    environment {
-        IMAGE_NAME = "samiyyaaftab/zesty"
-        DOCKER_CREDENTIALS_ID = "dockerhub-creds" 
-        GIT_CREDENTIALS_ID = "github-creds"      
-        REPO_URL = "https://github.com/Samiyyaaftab/Jenk.git"
-    }
-
     stages {
-        stage('Clone Repository') {
+        stage('Checkout') {
             steps {
-                echo 'Cloning GitHub repository...'
-                git branch: 'main', url: "${REPO_URL}", credentialsId: "${GIT_CREDENTIALS_ID}"
+                git branch: 'main', url: 'https://github.com/Samiyyaaftab/Jenk.git'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Install Dependencies') {
             steps {
-                echo 'Building Docker image...'
-                script {
-                    docker.build("${IMAGE_NAME}:latest")
+                bat "npm install"
+            }
+        }
+
+        stage('Build') {
+            steps {
+                bat "npm run build --if-present"
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo "No tests configured, skipping test stage..."
+            }
+        }
+
+        stage('Docker Build & Push') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-id', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    bat """
+                    echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                    docker build -t usvaqandeel/mern-devops-task-tracker .
+                    docker push usvaqandeel/mern-devops-task-tracker
+                    """
                 }
             }
         }
 
-        stage('Push to Docker Hub') {
+        stage('Deploy to Railway') {
             steps {
-                echo 'Pushing Docker image to Docker Hub...'
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_CREDENTIALS_ID}") {
-                        docker.image("${IMAGE_NAME}:latest").push()
-                    }
-                }
+                echo "Deploying to Railway... (handled automatically by Railway GitHub integration)"
             }
-        }
-    }
-
-    post {
-        success {
-            echo 'Pipeline succeeded!'
-        }
-        failure {
-            echo 'Pipeline failed — check logs for details.'
-        }
-        always {
-            echo 'Pipeline finished.'
         }
     }
 }
