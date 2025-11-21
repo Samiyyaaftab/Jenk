@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zesty-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: zesty
+  template:
+    metadata:
+      labels:
+        app: zesty
+    spec:
+      containers:
+        - name: zesty-container
+          image: samiyyaaftab/zesty:latest
+          imagePullPolicy: IfNotPresent   
+          ports:
+            - containerPort: 3000
